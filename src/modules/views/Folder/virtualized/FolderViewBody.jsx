@@ -22,12 +22,18 @@ const FolderViewBody = ({
   canUpload = true,
   canDrag,
   withFilePath = false,
-  sortOrder
+  refreshFolderContent = null,
+  orderProps = {
+    sortOrder: {},
+    setOrder: () => {},
+    isSettingsLoaded: true
+  }
 }) => {
   const { isDesktop } = useBreakpoints()
   const IsAddingFolder = useSelector(isTypingNewFolderName)
   const { isBigThumbnail } = useThumbnailSizeContext()
   const { clearItems } = useNewItemHighlightContext()
+  const { sortOrder, setOrder, isSettingsLoaded } = orderProps
 
   const isInError = queryResults.some(query => query.fetchStatus === 'failed')
   const hasDataToShow =
@@ -92,7 +98,7 @@ const FolderViewBody = ({
     return () => clearTimeout(timeout)
   }, [isLoading])
 
-  if (needsToWait || isLoading) {
+  if (needsToWait || isLoading || !isSettingsLoaded) {
     return <FileListRowsPlaceholder />
   }
 
@@ -107,7 +113,11 @@ const FolderViewBody = ({
   if (isEmpty) {
     if (IsAddingFolder) {
       return (
-        <AddFolderWrapper columns={columns} currentFolderId={currentFolderId} />
+        <AddFolderWrapper
+          columns={columns}
+          currentFolderId={currentFolderId}
+          refreshFolderContent={refreshFolderContent}
+        />
       )
     }
 
@@ -130,7 +140,11 @@ const FolderViewBody = ({
       isEmpty={isEmpty}
       canDrag={canDrag}
       withFilePath={withFilePath}
-      sortOrder={sortOrder}
+      orderProps={{
+        sortOrder,
+        setOrder
+      }}
+      refreshFolderContent={refreshFolderContent}
     />
   )
 }

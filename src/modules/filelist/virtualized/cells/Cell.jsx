@@ -12,6 +12,7 @@ import { useI18n } from 'cozy-ui/transpiled/react/providers/I18n'
 
 import AcceptingSharingContext from '@/lib/AcceptingSharingContext'
 import { ActionMenuWithHeader } from '@/modules/actionmenu/ActionMenuWithHeader'
+import { getContextMenuActions } from '@/modules/actions/helpers'
 import {
   isRenaming as isRenamingSelector,
   getRenamingFile
@@ -33,7 +34,8 @@ const Cell = ({
   currentFolderId,
   withFilePath,
   actions,
-  onInteractWithFile
+  onInteractWithFile,
+  refreshFolderContent
 }) => {
   const { f, t } = useI18n()
   const vaultClient = useVaultClient()
@@ -59,6 +61,7 @@ const Cell = ({
         <AddFolder
           vaultClient={vaultClient}
           currentFolderId={currentFolderId}
+          refreshFolderContent={refreshFolderContent}
         />
       )
     }
@@ -110,6 +113,7 @@ const Cell = ({
           withFilePath={withFilePath}
           formattedSize={formattedSize}
           formattedUpdatedAt={formattedUpdatedAt}
+          refreshFolderContent={refreshFolderContent}
           isInSyncFromSharing={isInSyncFromSharing}
         />
       </FileOpener>
@@ -150,6 +154,8 @@ const Cell = ({
       row._id !== 'io.cozy.files.shared-drives-dir' &&
       !row._id.endsWith('.trash-dir')
 
+    const contextMenuActions = getContextMenuActions(actions)
+
     if (!actions || !canInteractWithFile) {
       return null
     }
@@ -162,11 +168,11 @@ const Cell = ({
           disabled={isInSyncFromSharing}
           onClick={toggleShowActionMenu}
         />
-        {actions && showActionMenu && (
+        {contextMenuActions && showActionMenu && (
           <ActionMenuWithHeader
             file={row}
             anchorElRef={filerowMenuToggleRef}
-            actions={actions}
+            actions={contextMenuActions}
             onClose={toggleShowActionMenu}
           />
         )}
@@ -186,7 +192,8 @@ const CellWrapper = ({
   currentFolderId,
   withFilePath,
   actions,
-  onInteractWithFile
+  onInteractWithFile,
+  refreshFolderContent
 }) => {
   return (
     <CellMemo
@@ -197,6 +204,7 @@ const CellWrapper = ({
       withFilePath={withFilePath}
       actions={actions}
       onInteractWithFile={onInteractWithFile}
+      refreshFolderContent={refreshFolderContent}
     />
   )
 }

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useRef } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
@@ -35,7 +35,11 @@ const FolderViewBodyContent = ({
   isEmpty,
   canDrag,
   withFilePath,
-  sortOrder
+  orderProps = {
+    sortOrder: {},
+    setOrder: () => {}
+  },
+  refreshFolderContent
 }) => {
   const folderViewRef = useRef()
 
@@ -50,11 +54,8 @@ const FolderViewBodyContent = ({
   const { viewType } = useViewSwitcherContext()
   const { t } = useI18n()
   const IsAddingFolder = useSelector(isTypingNewFolderName)
-
-  const [order, setOrder] = useState(sortOrder?.order || 'asc')
-  const [orderBy, setOrderBy] = useState(
-    sortOrder?.attribute || columns?.[0]?.id
-  )
+  const { sortOrder } = orderProps
+  const { order, attribute: orderBy } = sortOrder
 
   const fetchMore = queryResults.find(query => query.hasMore)?.fetchMore
 
@@ -113,7 +114,8 @@ const FolderViewBodyContent = ({
               selectAll,
               registerCancelable,
               sharedPaths,
-              t
+              t,
+              refreshFolderContent
             })
           }}
           fetchMore={fetchMore}
@@ -125,20 +127,18 @@ const FolderViewBodyContent = ({
           actions={actions}
           ref={folderViewRef}
           onInteractWithFile={onInteractWithFile}
-          orderProps={{
-            order,
-            orderBy,
-            setOrder,
-            setOrderBy
-          }}
+          orderProps={orderProps}
+          refreshFolderContent={refreshFolderContent}
         />
       ) : (
         <Grid
-          items={rows}
+          items={sortedRows}
           currentFolderId={currentFolderId}
           withFilePath={withFilePath}
           actions={actions}
           fetchMore={fetchMore}
+          selectedItems={selectedItems}
+          isSelectedItem={isSelectedItem}
           dragProps={{
             enabled: canDrag,
             dragId: 'drag-drive',
@@ -148,11 +148,13 @@ const FolderViewBodyContent = ({
               selectAll,
               registerCancelable,
               sharedPaths,
-              t
+              t,
+              refreshFolderContent
             })
           }}
           onInteractWithFile={onInteractWithFile}
           ref={folderViewRef}
+          refreshFolderContent={refreshFolderContent}
         />
       )}
     </FolderUnlocker>

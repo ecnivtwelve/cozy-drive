@@ -17,7 +17,15 @@ export const makeRows = ({ queryResults, IsAddingFolder, syncingFakeFile }) => {
 }
 
 export const onDrop =
-  ({ client, showAlert, selectAll, registerCancelable, sharedPaths, t }) =>
+  ({
+    client,
+    showAlert,
+    selectAll,
+    registerCancelable,
+    sharedPaths,
+    t,
+    refreshFolderContent
+  }) =>
   async (draggedItems, itemHovered, selectedItems) => {
     if (
       itemHovered.type !== 'directory' ||
@@ -33,7 +41,9 @@ export const onDrop =
     try {
       await Promise.all(
         draggedItems.map(async draggedItem => {
-          const force = !sharedPaths.includes(itemHovered.path)
+          const force =
+            Array.isArray(sharedPaths) &&
+            !sharedPaths.includes(itemHovered.path)
           await registerCancelable(
             move(client, draggedItem, itemHovered, {
               force
@@ -49,6 +59,9 @@ export const onDrop =
           smart_count: draggedItems.length
         })
       })
+      if (refreshFolderContent) {
+        refreshFolderContent()
+      }
     } catch (error) {
       logger.warn(`Error while dragging files:`, error)
       showAlert({
